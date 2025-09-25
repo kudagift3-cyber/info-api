@@ -1,11 +1,4 @@
 from app import app
 
-if __name__ == '__main__':
-    app.run(debug=True)
-    
-    #THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
+# ✅ No app.run() here for Vercel
+# Vercel will use this app object automatically
