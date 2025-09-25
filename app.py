@@ -76,7 +76,8 @@ async def create_jwt(region: str):
     headers = {
         'User-Agent': USERAGENT, 'Connection': "Keep-Alive", 'Accept-Encoding': "gzip",
         'Content-Type': "application/octet-stream", 'Expect': "100-continue",
-        'X-Unity-Version': "2018.4.11f1", 'X-GA': "v1 1", 'ReleaseVersion': RELEASEVERSION
+        'X-Unity-Version': "2018.4.11f1", 'X-GA': "v1 1",
+        'ReleaseVersion': RELEASEVERSION
     }
     async with httpx.AsyncClient() as client:
         resp = await client.post(url, data=payload, headers=headers)
@@ -121,42 +122,9 @@ async def GetAccountInformation(uid, unk, region, endpoint):
 
 def format_response(data):
     return {
-        "AccountInfo": {
-            "AccountAvatarId": data.get("basicInfo", {}).get("headPic"),
-            "AccountBPBadges": data.get("basicInfo", {}).get("badgeCnt"),
-            "AccountBPID": data.get("basicInfo", {}).get("badgeId"),
-            "AccountBannerId": data.get("basicInfo", {}).get("bannerId"),
-            "AccountCreateTime": data.get("basicInfo", {}).get("createAt"),
-            "AccountEXP": data.get("basicInfo", {}).get("exp"),
-            "AccountLastLogin": data.get("basicInfo", {}).get("lastLoginAt"),
-            "AccountLevel": data.get("basicInfo", {}).get("level"),
-            "AccountLikes": data.get("basicInfo", {}).get("liked"),
-            "AccountName": data.get("basicInfo", {}).get("nickname"),
-            "AccountRegion": data.get("basicInfo", {}).get("region"),
-            "AccountSeasonId": data.get("basicInfo", {}).get("seasonId"),
-            "AccountType": data.get("basicInfo", {}).get("accountType"),
-            "BrMaxRank": data.get("basicInfo", {}).get("maxRank"),
-            "BrRankPoint": data.get("basicInfo", {}).get("rankingPoints"),
-            "CsMaxRank": data.get("basicInfo", {}).get("csMaxRank"),
-            "CsRankPoint": data.get("basicInfo", {}).get("csRankingPoints"),
-            "EquippedWeapon": data.get("basicInfo", {}).get("weaponSkinShows", []),
-            "ReleaseVersion": data.get("basicInfo", {}).get("releaseVersion"),
-            "ShowBrRank": data.get("basicInfo", {}).get("showBrRank"),
-            "ShowCsRank": data.get("basicInfo", {}).get("showCsRank"),
-            "Title": data.get("basicInfo", {}).get("title")
-        },
-        "AccountProfileInfo": {
-            "EquippedOutfit": data.get("profileInfo", {}).get("clothes", []),
-            "EquippedSkills": data.get("profileInfo", {}).get("equipedSkills", [])
-        },
-        "GuildInfo": {
-            "GuildCapacity": data.get("clanBasicInfo", {}).get("capacity"),
-            "GuildID": str(data.get("clanBasicInfo", {}).get("clanId")),
-            "GuildLevel": data.get("clanBasicInfo", {}).get("clanLevel"),
-            "GuildMember": data.get("clanBasicInfo", {}).get("memberNum"),
-            "GuildName": data.get("clanBasicInfo", {}).get("clanName"),
-            "GuildOwner": str(data.get("clanBasicInfo", {}).get("captainId"))
-        },
+        "AccountInfo": data.get("basicInfo", {}),
+        "AccountProfileInfo": data.get("profileInfo", {}),
+        "GuildInfo": data.get("clanBasicInfo", {}),
         "captainBasicInfo": data.get("captainBasicInfo", {}),
         "creditScoreInfo": data.get("creditScoreInfo", {}),
         "petInfo": data.get("petInfo", {}),
@@ -169,18 +137,13 @@ async def get_account_info():
     uid = request.args.get('uid')
     if not uid:
         return jsonify({"error": "Please provide UID."}), 400
-    
     try:
-        # Always use ME region
         region = "ME"
-        
-        # Get account information
         return_data = await GetAccountInformation(uid, "7", region, "/GetPlayerPersonalShow")
         formatted = format_response(return_data)
         return jsonify(formatted), 200
-    
     except Exception as e:
-        return jsonify({"error": "Invalid UID or server error. Please try again."}), 500
+        return jsonify({"error": "Invalid UID or server error."}), 500
 
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh_tokens_endpoint():
@@ -190,21 +153,8 @@ def refresh_tokens_endpoint():
     except Exception as e:
         return jsonify({'error': f'Refresh failed: {e}'}), 500
 
-# === Startup ===
-async def startup():
-    await initialize_tokens()
-    asyncio.create_task(refresh_tokens_periodically())
-
-if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(startup())
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-    
-    
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
-#THIS CODE CREATE BY @JOBAYAR_AHME
+# === Startup Background Task ===
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+loop.create_task(initialize_tokens())
+loop.create_task(refresh_tokens_periodically())
